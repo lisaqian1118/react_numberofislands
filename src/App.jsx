@@ -20,37 +20,43 @@ function Grid() {
     const [grid, setGrid] = useState([]);
     const [islandCount, setIslandCount] = useState(0);
 
-  const handleCountIslands = () => {
+  const handleCountIslands = async () => {
     // Create a deep copy of the grid to avoid modifying state directly
     const gridCopy = grid.map(row => [...row]);
-    setIslandCount(numIslands(gridCopy));
+    const count = await numIslands(gridCopy);
+    setIslandCount(count);
   };
 
 
-    const numIslands = (grid) => {
+    const numIslands = async (grid) => {
       if (!grid || grid.length === 0) return 0;
 
       let count = 0;
       const rows = grid.length;
       const cols = grid[0].length;
 
-      const dfs = (i, j) => {
+      const dfs = async (i, j) => {
         if (i < 0 || j < 0 || i >= rows || j >= cols || grid[i][j] === "0") return;
         grid[i][j] = "0"; // Mark visited land as water
+        
+        // Create a new grid array to trigger re-render
+        const newGrid = grid.map(row => [...row]);
+        setGrid(newGrid);
+        
+        // Add delay to see the changes
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-   //     setGrid(grid);
-
-        dfs(i + 1, j); // Down
-        dfs(i - 1, j); // Up
-        dfs(i, j + 1); // Right
-        dfs(i, j - 1); // Left
+        await dfs(i + 1, j); // Down
+        await dfs(i - 1, j); // Up
+        await dfs(i, j + 1); // Right
+        await dfs(i, j - 1); // Left
       };
 
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
           if (grid[i][j] === "1") {
             count++;
-            dfs(i, j);
+            await dfs(i, j);
           }
         }
       }
